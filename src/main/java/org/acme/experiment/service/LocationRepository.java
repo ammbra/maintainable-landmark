@@ -5,7 +5,6 @@ import org.acme.experiment.exception.LocationNotFoundException;
 import org.acme.experiment.model.Location;
 
 import javax.inject.Singleton;
-import javax.transaction.Transactional;
 import java.util.List;
 
 @Singleton

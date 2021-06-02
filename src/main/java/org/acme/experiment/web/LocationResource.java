@@ -7,7 +7,6 @@ import org.acme.experiment.service.LocationService;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -23,17 +22,17 @@ public class LocationResource {
     LocationService locationService;
 
     @GET
-    @Path("/all")
+    @Path("all")
     @Produces(MediaType.APPLICATION_JSON)
-    @Query("findAll")
+    @Query("findAllLocations")
     public List<Location> findAll() {
         return this.locationService.getAll();
     }
 
     @GET
-    @Path("/{address}")
+    @Path("{address}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Query("findByPartialAddress")
+    @Query("findAllLocationsByAddress")
     public CompletionStage<List<Location>> findByPartialAddress(@PathParam("address") String address) {
         return CompletableFuture.supplyAsync(() -> locationService.findByAddress(address));
     }
@@ -41,20 +40,23 @@ public class LocationResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @CacheResult(cacheName = "location-by-name")
-    public CompletionStage<Location> findByName(@CacheKey @QueryParam("name") String name) {
+    @Query("findAllLocationsByName")
+    public CompletionStage<Location> findByName(@CacheKey@QueryParam("name") String name) {
         return CompletableFuture.supplyAsync(() -> locationService.findByName(name));
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Query("createLocation")
     public void create(Location location) {
         locationService.create(location);
     }
 
     @DELETE
-    @Path("/{id}")
+    @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Query("deleteLocationById")
     public Long deleteById(@PathParam("id") UUID id) {
         return locationService.deleteById(id);
     }

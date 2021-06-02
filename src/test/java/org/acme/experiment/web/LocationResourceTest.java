@@ -82,7 +82,7 @@ public class LocationResourceTest {
     }
 
     @Test
-    void shoudlMeasureCachedLocationsByName() {
+    void shouldMeasureCachedLocationsByName() {
         //given
         CaffeineCache cache = (CaffeineCache) cacheManager.getCache("location-by-name").get();
         registry.gauge("cache.size", cache, value -> cache.getSize());

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import io.micrometer.core.instrument.Measurement;
 import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.quarkus.cache.CacheManager;
 import io.quarkus.cache.runtime.caffeine.CaffeineCache;
@@ -18,9 +19,11 @@ import java.util.List;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
 public class LocationResourceTest {
@@ -105,5 +108,38 @@ public class LocationResourceTest {
         List<Measurement> measurements = new ArrayList<>();
         gauge.measure().iterator().forEachRemaining(measurements::add);
         assertEquals(3, measurements.get(0).getValue());
+    }
+
+    @Test
+    void compareResponseTimes() {
+        //given
+        Timer timerSync = registry.timer("sync.request.facts.duration");
+
+        //when
+        timerSync.record(() -> {
+            for (int i = 0; i < 5; i++) {
+                given()
+                        .when().get("/api/location/async/Museum")
+                        .then().and()
+                        .statusCode(200)
+                        .body(notNullValue());
+            }
+        });
+        double syncTime = timerSync.totalTime(MILLISECONDS);
+        //given
+        Timer timerASync = registry.timer("async.request.facts.duration");
+
+        timerASync.record(() -> {
+            for (int i = 0; i < 5; i++) {
+                given()
+                        .when().get("/api/location/Museum")
+                        .then().and()
+                        .statusCode(200)
+                        .body(notNullValue());
+            }
+        });
+        double asyncTime = timerASync.totalTime(MILLISECONDS);
+        //then
+        assertTrue(syncTime > asyncTime);
     }
 }

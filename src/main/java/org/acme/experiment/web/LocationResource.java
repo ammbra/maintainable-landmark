@@ -30,11 +30,19 @@ public class LocationResource {
     }
 
     @GET
+    @Path("/async/{address}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Query("asyncFindLocationsByAddress")
+    public CompletionStage<List<Location>> asyncFindByPartialAddress(@PathParam("address") String address) {
+        return CompletableFuture.supplyAsync(() -> locationService.findByAddress(address));
+    }
+
+    @GET
     @Path("{address}")
     @Produces(MediaType.APPLICATION_JSON)
     @Query("findAllLocationsByAddress")
-    public CompletionStage<List<Location>> findByPartialAddress(@PathParam("address") String address) {
-        return CompletableFuture.supplyAsync(() -> locationService.findByAddress(address));
+    public List<Location> findByPartialAddress(@PathParam("address") String address) {
+        return locationService.findByAddress(address);
     }
 
     @GET
@@ -48,7 +56,6 @@ public class LocationResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Query("createLocation")
     public void create(Location location) {
         locationService.create(location);
     }
